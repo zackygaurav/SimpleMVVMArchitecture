@@ -11,15 +11,17 @@ import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
-@Entity(tableName = "table_movies", indices = {@Index(value = "title", unique = true), @Index(value = "year", unique = true)})
+@Entity(tableName = "table_movies", indices = {@Index(value = "title", unique = true)})
 public class MovieModel implements Serializable
 {
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id")
+    private int id;
+
     @ColumnInfo(name = "title")
     @SerializedName("Title")
     private String title;
 
-    @NonNull
-    @PrimaryKey
     @ColumnInfo(name = "year")
     @SerializedName("Year")
     private String year;
@@ -36,8 +38,9 @@ public class MovieModel implements Serializable
     /*
     * Constructor
     * */
-    public MovieModel(String title, String year, String released, String director)
+    public MovieModel(int id, String title, String year, String released, String director)
     {
+        this.id = id;
         this.title = title;
         this.year = year;
         this.released = released;
@@ -47,6 +50,11 @@ public class MovieModel implements Serializable
     /*
     * Getters
     * */
+    public int getId()
+    {
+        return id;
+    }
+
     public String getTitle()
     {
         return title;

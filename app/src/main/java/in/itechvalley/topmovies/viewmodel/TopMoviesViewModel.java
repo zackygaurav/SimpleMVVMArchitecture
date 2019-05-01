@@ -41,16 +41,6 @@ public class TopMoviesViewModel extends AndroidViewModel
     private TopMoviesRepo topMoviesRepo;
 
     /*
-    * Instance of MutableLiveData to observe List<MovieModel>
-    * */
-    private MutableLiveData<List<MovieModel>> listObserver = new MutableLiveData<>();
-
-    /*
-    * Instance of MutableLiveData to observer API Callback Status
-    * */
-    private MutableLiveData<Integer> apiObserver = new MutableLiveData<>();
-
-    /*
      * Constructor
      * */
     public TopMoviesViewModel(@NonNull Application application)
@@ -73,11 +63,11 @@ public class TopMoviesViewModel extends AndroidViewModel
     * */
     public LiveData<List<MovieModel>> getListObserver()
     {
-        return listObserver;
+        return topMoviesRepo.getMediatorLiveData();
     }
 
     public LiveData<Integer> getApiObserver()
     {
-        return apiObserver;
+        return topMoviesRepo.getApiObserver();
     }
 }

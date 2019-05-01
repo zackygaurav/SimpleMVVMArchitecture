@@ -3,7 +3,9 @@ package in.itechvalley.topmovies.repo;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -40,11 +42,51 @@ public class TopMoviesRepo
     private AppDatabase appDatabase;
 
     /*
+    * MediatorLiveData to observe the Database (Single Source of Truth)
+    * */
+    private MediatorLiveData<List<MovieModel>> mediatorLiveData;
+
+    /*
     * Constructor
     * */
     public TopMoviesRepo(AppDatabase appDatabase)
     {
         this.appDatabase = appDatabase;
+
+        /*
+        * Init the Global Instance of MediatorLiveData
+        * */
+        mediatorLiveData = new MediatorLiveData<>();
+        /*
+        * Add Database as a Source to MediatorLiveData (Single Source of Truth)
+        * */
+        mediatorLiveData.addSource(appDatabase.getTopMoviesDao().readCachedMoviesData(), new Observer<List<MovieModel>>()
+        {
+            @Override
+            public void onChanged(List<MovieModel> movieModels)
+            {
+                if (movieModels != null)
+                {
+                    mediatorLiveData.postValue(movieModels);
+                }
+            }
+        });
+    }
+
+    /*
+    * Returns the Instance of MediatorLiveData to ViewModel
+    * */
+    public MediatorLiveData<List<MovieModel>> getMediatorLiveData()
+    {
+        return mediatorLiveData;
+    }
+
+    /*
+    * Returns the Instance of MutableLiveData to observe API Callback
+    * */
+    public MutableLiveData<Integer> getApiObserver()
+    {
+        return apiObserver;
     }
 
     /*
@@ -101,6 +143,12 @@ public class TopMoviesRepo
                     @Override
                     public void run()
                     {
+                        /*
+                        * Truncate the Table to clear Previous Entries
+                        * */
+                        int truncateResult = appDatabase.getTopMoviesDao().truncateTable();
+                        Log.i(TAG, String.format("Total %d entries deleted", truncateResult));
+
                         /*
                          * Attempt to cache the data locally
                          * */

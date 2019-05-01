@@ -115,6 +115,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 * */
                 if (movieModels != null)
                 {
+                    if (swipeRefreshLayout.isRefreshing())
+                        swipeRefreshLayout.setRefreshing(false);
+
                     /*
                     * Check Empty Condition
                     * */
@@ -138,9 +141,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             @Override
             public void onChanged(Integer statusCode)
             {
-                if (swipeRefreshLayout.isRefreshing())
-                    swipeRefreshLayout.setRefreshing(false);
-
                 switch (statusCode)
                 {
                     case Constants.StatusCodes.STATUS_CODE_SUCCESS:
