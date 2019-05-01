@@ -16,9 +16,11 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
+import in.itechvalley.topmovies.TopMoviesApp;
 import in.itechvalley.topmovies.model.MovieModel;
 import in.itechvalley.topmovies.model.TopMoviesModel;
 import in.itechvalley.topmovies.model.TopMoviesRequest;
+import in.itechvalley.topmovies.repo.TopMoviesRepo;
 import in.itechvalley.topmovies.util.Constants;
 import in.itechvalley.topmovies.view.MainActivity;
 import okhttp3.OkHttpClient;
@@ -32,6 +34,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class TopMoviesViewModel extends AndroidViewModel
 {
     private static final String TAG = "TopMoviesViewModel";
+
+    /*
+    * Inject the Instance of TopMoviesRepo
+    * */
+    private TopMoviesRepo topMoviesRepo;
 
     /*
     * Instance of MutableLiveData to observe List<MovieModel>
@@ -49,6 +56,16 @@ public class TopMoviesViewModel extends AndroidViewModel
     public TopMoviesViewModel(@NonNull Application application)
     {
         super(application);
+
+        /*
+         * Init the Instance of TopMoviesRepo
+         * */
+        topMoviesRepo = ((TopMoviesApp) application).provideRepo();
+    }
+
+    public void requestMovieList()
+    {
+        topMoviesRepo.requestMoviesList();
     }
 
     /*
@@ -62,78 +79,5 @@ public class TopMoviesViewModel extends AndroidViewModel
     public LiveData<Integer> getApiObserver()
     {
         return apiObserver;
-    }
-
-    public void requestMoviesList()
-    {
-        /*
-         * OkHttp Logging Interceptor
-         * */
-        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
-        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .addInterceptor(httpLoggingInterceptor)
-                .build();
-
-        Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(okHttpClient)
-                .baseUrl("https://api.myjson.com/");
-
-        Retrofit retrofit = retrofitBuilder.build();
-
-        TopMoviesRequest topMoviesRequest = retrofit.create(TopMoviesRequest.class);
-        Call<TopMoviesModel> request = topMoviesRequest.getMoviesData();
-        request.enqueue(new Callback<TopMoviesModel>()
-        {
-            @Override
-            public void onResponse(@NonNull Call<TopMoviesModel> call, @NonNull Response<TopMoviesModel> response)
-            {
-                TopMoviesModel responseBody = response.body();
-                if (responseBody == null)
-                {
-                    apiObserver.postValue(Constants.StatusCodes.ERROR_CODE_RESPONSE_BODY_NULL);
-                    return;
-                }
-
-                /*
-                * Get the List from Response
-                * */
-                List<MovieModel> moviesList = responseBody.getMovieModelList();
-                if (moviesList.size() == 0)
-                {
-                    apiObserver.postValue(Constants.StatusCodes.ERROR_CODE_RESPONSE_FAILED);
-                }
-                else
-                {
-                    apiObserver.postValue(Constants.StatusCodes.STATUS_CODE_SUCCESS);
-                }
-
-                /*
-                * Post the List to it's observer
-                * */
-                listObserver.postValue(moviesList);
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<TopMoviesModel> call, @NonNull Throwable throwable)
-            {
-                if (throwable instanceof UnknownHostException)
-                {
-                    apiObserver.postValue(Constants.StatusCodes.ERROR_CODE_UNKNOWN_HOST_EXCEPTION);
-                }
-                else if (throwable instanceof SocketTimeoutException)
-                {
-                    apiObserver.postValue(Constants.StatusCodes.ERROR_CODE_SOCKET_TIMEOUT);
-                }
-                else
-                {
-                    apiObserver.postValue(Constants.StatusCodes.ERROR_CODE_FAILURE_UNKNOWN);
-                }
-
-                Log.e(TAG, "Failed to fetch Movies List", throwable);
-            }
-        });
     }
 }

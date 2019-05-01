@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         * Init the Global Instance of ViewModel
         * */
         viewModel = ViewModelProviders.of(this).get(TopMoviesViewModel.class);
-        viewModel.requestMoviesList();
+        viewModel.requestMovieList();
         /*
          * Trigger SwipeRefreshLayout
          * */
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         * */
         swipeRefreshLayout.setRefreshing(true);
 
-        viewModel.requestMoviesList();
+        viewModel.requestMovieList();
     }
 
     private void initAdapter()
