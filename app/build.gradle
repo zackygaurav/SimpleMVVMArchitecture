@@ -58,4 +58,6 @@ dependencies {
     * ViewModel + LifeCycle
     * */
     implementation 'androidx.lifecycle:lifecycle-extensions:' + project.viewmodelVersion
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
 }
