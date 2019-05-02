@@ -28,4 +28,7 @@ public interface TopMoviesDao
 
     @Query("DELETE FROM table_movies")
     int truncateTable();
+
+    @Query("DELETE FROM table_movies WHERE title = :movieTitle")
+    int deleteMovieByTitle(String movieTitle);
 }

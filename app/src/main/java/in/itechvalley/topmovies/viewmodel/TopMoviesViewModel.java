@@ -10,10 +10,18 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.time.Period;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 import in.itechvalley.topmovies.TopMoviesApp;
@@ -23,6 +31,7 @@ import in.itechvalley.topmovies.model.TopMoviesRequest;
 import in.itechvalley.topmovies.repo.TopMoviesRepo;
 import in.itechvalley.topmovies.util.Constants;
 import in.itechvalley.topmovies.view.MainActivity;
+import in.itechvalley.topmovies.work.MyWorker;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -58,6 +67,11 @@ public class TopMoviesViewModel extends AndroidViewModel
         topMoviesRepo.requestMoviesList();
     }
 
+    public void deleteMovieByTitle(String movieTitle)
+    {
+        topMoviesRepo.deleteMovieByTitle(movieTitle);
+    }
+
     /*
     * Getter to return the Instance of listObserver
     * */
@@ -69,5 +83,35 @@ public class TopMoviesViewModel extends AndroidViewModel
     public LiveData<Integer> getApiObserver()
     {
         return topMoviesRepo.getApiObserver();
+    }
+
+    /*
+    * Testing Related to WorkManager
+    * */
+    public UUID attemptWork(String message)
+    {
+        Data data = new Data.Builder()
+                .putString("test_key", message)
+                .build();
+
+        OneTimeWorkRequest.Builder oneTimeWorkRequestBuilder = new OneTimeWorkRequest.Builder(MyWorker.class);
+        oneTimeWorkRequestBuilder.setInputData(data);
+
+        Constraints workConstraints = new Constraints.Builder()
+                .setRequiresCharging(true)
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        oneTimeWorkRequestBuilder.setConstraints(workConstraints);
+
+        OneTimeWorkRequest oneTimeWorkRequest = oneTimeWorkRequestBuilder.build();
+
+        WorkManager workManager = WorkManager.getInstance();
+        workManager.beginUniqueWork(
+                "testUniqueWork",
+                ExistingWorkPolicy.REPLACE,
+                oneTimeWorkRequest).enqueue();
+
+        return oneTimeWorkRequest.getId();
     }
 }

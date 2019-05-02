@@ -1,26 +1,32 @@
 package in.itechvalley.topmovies.view;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import in.itechvalley.topmovies.R;
 import in.itechvalley.topmovies.adapter.TopMoviesRecyclerAdapter;
 import in.itechvalley.topmovies.model.MovieModel;
@@ -37,7 +43,8 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener,
+        TopMoviesRecyclerAdapter.TopMoviesAdapterListener
 {
     /*
     * TAG
@@ -108,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         viewModel.getListObserver().observe(this, new Observer<List<MovieModel>>()
         {
             @Override
-            public void onChanged(List<MovieModel> movieModels)
+            public void onChanged(@Nullable List<MovieModel> movieModels)
             {
                 /*
                 * Check for Null
@@ -215,6 +222,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     private void initAdapter()
     {
+
         /*
          * 1. Init List
          * */
@@ -223,11 +231,42 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         /*
          * 2. Init Adapter
          * */
-        adapter = new TopMoviesRecyclerAdapter(topMoviesModelsList);
+        adapter = new TopMoviesRecyclerAdapter(topMoviesModelsList, this);
 
         /*
         * Set Adapter to RecylerView
         * */
         recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onItemClick(String movieTitle)
+    {
+        viewModel.deleteMovieByTitle(movieTitle);
+    }
+
+    @OnClick(R.id.fab_work_manager)
+    void onFabClick()
+    {
+        UUID uuid = viewModel.attemptWork("This is a test message");
+        WorkManager.getInstance().getWorkInfoByIdLiveData(uuid).observe(this, new Observer<WorkInfo>()
+        {
+            @Override
+            public void onChanged(WorkInfo workInfo)
+            {
+                if (workInfo != null)
+                {
+                    if (workInfo.getState() == WorkInfo.State.SUCCEEDED)
+                    {
+                        Toast.makeText(MainActivity.this, "Work Completed", Toast.LENGTH_SHORT).show();
+                    }
+                    else if (workInfo.getState() == WorkInfo.State.FAILED)
+                    {
+                        Toast.makeText(MainActivity.this, "Work Failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
+
     }
 }

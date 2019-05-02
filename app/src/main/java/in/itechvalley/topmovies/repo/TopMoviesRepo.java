@@ -12,6 +12,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 import in.itechvalley.topmovies.db.AppDatabase;
+import in.itechvalley.topmovies.executors.AppExecutors;
 import in.itechvalley.topmovies.model.MovieModel;
 import in.itechvalley.topmovies.model.TopMoviesModel;
 import in.itechvalley.topmovies.model.TopMoviesRequest;
@@ -181,6 +182,19 @@ public class TopMoviesRepo
                 }
 
                 Log.e(TAG, "Failed to fetch Movies List", throwable);
+            }
+        });
+    }
+
+    public void deleteMovieByTitle(String movieTitle)
+    {
+        AppExecutors.getInstance().getNetworkIo().execute(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                int deleteResult = appDatabase.getTopMoviesDao().deleteMovieByTitle(movieTitle);
+                Log.i(TAG, "Deleted with ID: " + deleteResult);
             }
         });
     }

@@ -19,6 +19,11 @@ import in.itechvalley.topmovies.model.TopMoviesModel;
 public class TopMoviesRecyclerAdapter extends RecyclerView.Adapter<TopMoviesRecyclerAdapter.TopMoviesViewHolder>
 {
     /*
+    * Global Instance of Interface
+    * */
+    private TopMoviesAdapterListener listener;
+
+    /*
     * Global Instance of List to store all the movies
     * */
     private List<MovieModel> topMoviesModelList;
@@ -26,9 +31,10 @@ public class TopMoviesRecyclerAdapter extends RecyclerView.Adapter<TopMoviesRecy
     /*
     * Constructor
     * */
-    public TopMoviesRecyclerAdapter(List<MovieModel> topMoviesModelList)
+    public TopMoviesRecyclerAdapter(List<MovieModel> topMoviesModelList, TopMoviesAdapterListener listener)
     {
         this.topMoviesModelList = topMoviesModelList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -49,6 +55,14 @@ public class TopMoviesRecyclerAdapter extends RecyclerView.Adapter<TopMoviesRecy
         * Update Movie Title
         * */
         holder.txtMovieTitle.setText(topMoviesModel.getTitle());
+
+        /*
+        * Click Listener on Item
+        * */
+        holder.itemView.setOnClickListener(v ->
+        {
+            listener.onItemClick(topMoviesModel.getTitle());
+        });
     }
 
     @Override
@@ -92,5 +106,13 @@ public class TopMoviesRecyclerAdapter extends RecyclerView.Adapter<TopMoviesRecy
             * */
             ButterKnife.bind(this, itemView);
         }
+    }
+
+    /*
+    * Interface for Callbacks to MainActivity
+    * */
+    public interface TopMoviesAdapterListener
+    {
+        void onItemClick(String movieTitle);
     }
 }
